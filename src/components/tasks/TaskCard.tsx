@@ -1,18 +1,43 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useStatusLookup } from "@/hooks/use-task-statuses";
+import { useDeleteTask } from "@/hooks/use-tasks";
+import { getErrorMessage } from "@/lib/api/client";
 import type { TaskResponse } from "@/lib/api/types";
 import { StatusSelect } from "./StatusSelect";
 
 interface TaskCardProps {
   task: TaskResponse;
+  isFirst: boolean;
+  isLast: boolean;
+  onMove: (direction: -1 | 1) => void;
+  onEdit: () => void;
 }
 
 /** One task row: colored edge = status, like the highlight color in the old Google Doc. */
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, isFirst, isLast, onMove, onEdit }: TaskCardProps) {
   const getStatus = useStatusLookup();
   const status = getStatus(task.status);
+  const deleteTask = useDeleteTask();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  function handleDelete() {
+    deleteTask.mutate(task, {
+      onSuccess: () => {
+        toast.success("Task deleted");
+        setConfirmOpen(false);
+      },
+      onError: (error) => {
+        toast.error(getErrorMessage(error));
+        setConfirmOpen(false);
+      },
+    });
+  }
 
   return (
     <li
@@ -69,8 +94,52 @@ export function TaskCard({ task }: TaskCardProps) {
 
         <div className="flex items-center gap-1">
           <StatusSelect task={task} />
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`Move "${task.title}" up`}
+            disabled={isFirst}
+            onClick={() => onMove(-1)}
+          >
+            ↑
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={`Move "${task.title}" down`}
+            disabled={isLast}
+            onClick={() => onMove(1)}
+          >
+            ↓
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={() => setConfirmOpen(true)}
+          >
+            Delete
+          </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Delete task?"
+        message={
+          <>
+            <strong>{task.title}</strong> will be permanently deleted.
+          </>
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteTask.isPending}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </li>
   );
 }

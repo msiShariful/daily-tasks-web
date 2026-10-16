@@ -1,18 +1,32 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
-import type { MemberTasksResponse } from "@/lib/api/types";
+import { moveTaskIds, useReorderTasks } from "@/hooks/use-tasks";
+import type { IsoDate, MemberTasksResponse, TaskResponse } from "@/lib/api/types";
 import { TaskCard } from "./TaskCard";
 
 interface MemberSectionProps {
+  date: IsoDate;
   section: MemberTasksResponse;
+  onAddTask: (memberId: number) => void;
+  onEditTask: (task: TaskResponse) => void;
 }
 
 /** One team member's block on the daily log: header with progress + their tasks. */
-export function MemberSection({ section }: MemberSectionProps) {
+export function MemberSection({ date, section, onAddTask, onEditTask }: MemberSectionProps) {
   const { member, tasks, total, done } = section;
+  const reorder = useReorderTasks();
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);
   const headingId = `member-${member.id}-heading`;
+
+  function move(index: number, direction: -1 | 1) {
+    reorder.mutate({
+      workDate: date,
+      teamMemberId: member.id,
+      taskIds: moveTaskIds(tasks, index, direction),
+    });
+  }
 
   return (
     <Card>
@@ -38,6 +52,9 @@ export function MemberSection({ section }: MemberSectionProps) {
               </span>
             </div>
           </div>
+          <Button variant="secondary" size="sm" onClick={() => onAddTask(member.id)}>
+            + Add task
+          </Button>
         </CardHeader>
 
         <div className="p-3">
@@ -45,8 +62,15 @@ export function MemberSection({ section }: MemberSectionProps) {
             <p className="px-1 py-2 text-sm text-slate-400">No tasks for this day.</p>
           ) : (
             <ol className="space-y-2">
-              {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+              {tasks.map((task, index) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  isFirst={index === 0}
+                  isLast={index === tasks.length - 1}
+                  onMove={(direction) => move(index, direction)}
+                  onEdit={() => onEditTask(task)}
+                />
               ))}
             </ol>
           )}
