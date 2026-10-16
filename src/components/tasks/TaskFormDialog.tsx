@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -12,14 +12,16 @@ import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 import { Textarea } from "@/components/ui/Textarea";
-import { useClients } from "@/hooks/use-clients";
+import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useTaskStatuses } from "@/hooks/use-task-statuses";
 import { useTeamMembers } from "@/hooks/use-team-members";
 import { useCreateTask, useUpdateTask } from "@/hooks/use-tasks";
 import { ApiError, getErrorMessage } from "@/lib/api/client";
+import { clientsApi } from "@/lib/api/clients";
 import { tasksApi } from "@/lib/api/tasks";
 import type { ClientSummary, IsoDate, TaskResponse, TeamMemberSummary } from "@/lib/api/types";
 import { applyServerErrors } from "@/lib/forms";
+import { parseQuickEntry, sameClientName } from "@/lib/quick-entry";
 import {
   emptyTaskForm,
   TASK_FORM_FIELDS,
@@ -96,6 +98,9 @@ interface TaskFormInnerProps extends TaskFormProps {
   clients: ClientSummary[];
 }
 
+/** Sentinel <option> value standing for "a client that does not exist yet". */
+const NEW_CLIENT = "__new__";
+
 function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clients }: TaskFormInnerProps) {
   const isEdit = task !== undefined;
   const createTask = useCreateTask();
@@ -104,6 +109,10 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
 
   // The version we loaded. The server rejects the save (409) if someone changed the task since.
   const [version, setVersion] = useState(task?.version);
+  // A client name typed into quick entry that no existing client matches yet.
+  // It is only created on submit, so abandoning the form leaves no stray client.
+  const [newClientName, setNewClientName] = useState("");
+  const createClient = useCreateClient();
   const [conflict, setConflict] = useState(false);
   const [reloading, setReloading] = useState(false);
 
@@ -112,6 +121,7 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
     control,
     handleSubmit,
     setError,
+    setValue,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<TaskFormValues>({
@@ -129,9 +139,61 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
       ? [...clients, { id: task.client.id, name: `${task.client.name} (inactive)` }]
       : clients;
 
-  async function onSubmit(values: TaskFormValues) {
+  // The staged <option> only exists after newClientName renders, so select it
+  // here rather than in the handler - a value with no matching option is dropped.
+  useEffect(() => {
+    if (newClientName !== "") setValue("clientId", NEW_CLIENT, { shouldDirty: true });
+  }, [newClientName, setValue]);
+
+  /** Paste "52640 - Yazan Al Masri": fill Task ID, and pick or stage the client. */
+  function applyQuickEntry(raw: string) {
+    const { taskCode, clientName } = parseQuickEntry(raw);
+    if (taskCode) setValue("taskCode", taskCode, { shouldDirty: true });
+
+    if (!clientName) {
+      setNewClientName("");
+      return;
+    }
+    const existing = clients.find((c) => sameClientName(c.name, clientName));
+    if (existing) {
+      setNewClientName("");
+      setValue("clientId", String(existing.id), { shouldDirty: true });
+    } else {
+      setNewClientName(clientName); // the effect above selects it once rendered
+    }
+  }
+
+  /**
+   * Turn the staged client name into a real id. Looks the name up first so an
+   * inactive client, or one added since the dialog opened, is reused instead of
+   * duplicated; a 409 from a concurrent create is resolved the same way.
+   */
+  async function resolveClientId(clientId: string): Promise<string> {
+    if (clientId !== NEW_CLIENT) return clientId;
+    const name = newClientName.trim();
+    if (!name) return "";
+
+    const search = await clientsApi.list({ q: name });
+    const found = search.find((c) => sameClientName(c.name, name));
+    if (found) return String(found.id);
+
+    try {
+      const created = await createClient.mutateAsync({ name, notes: null, active: true });
+      return String(created.id);
+    } catch (error) {
+      if (error instanceof ApiError && error.isConflict) {
+        const retry = await clientsApi.list({ q: name });
+        const raced = retry.find((c) => sameClientName(c.name, name));
+        if (raced) return String(raced.id);
+      }
+      throw error;
+    }
+  }
+
+  async function onSubmit(rawValues: TaskFormValues) {
     setConflict(false);
     try {
+      const values = { ...rawValues, clientId: await resolveClientId(rawValues.clientId) };
       if (isEdit) {
         await updateTask.mutateAsync({ id: task.id, request: toTaskRequest(values, version) });
         toast.success("Task saved");
@@ -189,6 +251,27 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <FormField
+          id="quickEntry"
+          label="Quick entry"
+          hint='Paste "52640 - Yazan Al Masri" to fill Task ID and Client at once.'
+          className="sm:col-span-2"
+        >
+          <Input
+            id="quickEntry"
+            placeholder="52640 - Yazan Al Masri"
+            autoComplete="off"
+            onChange={(event) => applyQuickEntry(event.target.value)}
+            onKeyDown={(event) => {
+              // Enter here should split the value, not submit a half-filled form.
+              if (event.key === "Enter") {
+                event.preventDefault();
+                applyQuickEntry(event.currentTarget.value);
+              }
+            }}
+          />
+        </FormField>
+
         <FormField id="teamMemberId" label="Team member" required error={errors.teamMemberId?.message}>
           <Select
             id="teamMemberId"
@@ -213,9 +296,19 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
           />
         </FormField>
 
-        <FormField id="clientId" label="Client" hint="Leave empty for internal work." error={errors.clientId?.message}>
+        <FormField
+          id="clientId"
+          label="Client"
+          hint={
+            newClientName !== ""
+              ? `"${newClientName}" will be added to your clients when you save.`
+              : "Leave empty for internal work."
+          }
+          error={errors.clientId?.message}
+        >
           <Select id="clientId" {...register("clientId")}>
             <option value="">— Internal (no client) —</option>
+            {newClientName !== "" && <option value={NEW_CLIENT}>{newClientName} — new client</option>}
             {clientOptions.map((client) => (
               <option key={client.id} value={String(client.id)}>
                 {client.name}
