@@ -14,6 +14,7 @@ import { useClient, useCreateClient, useUpdateClient } from "@/hooks/use-clients
 import { ApiError, getErrorMessage } from "@/lib/api/client";
 import type { ClientResponse } from "@/lib/api/types";
 import { applyServerErrors } from "@/lib/forms";
+import { parseQuickEntry } from "@/lib/quick-entry";
 import {
   CLIENT_FORM_FIELDS,
   clientSchema,
@@ -74,11 +75,19 @@ function ClientFormInner({ client, onDone }: { client?: ClientResponse; onDone: 
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
     defaultValues: client ? clientToFormValues(client) : emptyClientForm,
   });
+
+  /** Paste "52640 - Yazan Al Masri": fill Ticket ID and Name in one go. */
+  function applyQuickEntry(raw: string) {
+    const { taskCode, clientName } = parseQuickEntry(raw);
+    if (/^\d+$/.test(taskCode)) setValue("ticketId", Number(taskCode), { shouldDirty: true });
+    if (clientName) setValue("name", clientName, { shouldDirty: true });
+  }
 
   async function onSubmit(values: ClientFormValues) {
     const request = toClientRequest(values);
@@ -104,10 +113,33 @@ function ClientFormInner({ client, onDone }: { client?: ClientResponse; onDone: 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex h-full flex-col">
       <div className="flex-1 space-y-5">
+        {!isEdit && (
+          <FormField
+            id="quickEntry"
+            label="Quick entry"
+            hint='Paste "52640 - Yazan Al Masri" to fill Ticket ID and Name at once.'
+          >
+            <Input
+              id="quickEntry"
+              placeholder="52640 - Yazan Al Masri"
+              autoComplete="off"
+              autoFocus
+              onChange={(event) => applyQuickEntry(event.target.value)}
+              onKeyDown={(event) => {
+                // Enter here should split the value, not submit a half-filled form.
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyQuickEntry(event.currentTarget.value);
+                }
+              }}
+            />
+          </FormField>
+        )}
+
         <FormField id="name" label="Name" required error={errors.name?.message}>
           <Input
             id="name"
-            autoFocus
+            autoFocus={isEdit}
             aria-invalid={errors.name ? true : undefined}
             aria-describedby="name-error"
             {...register("name")}
