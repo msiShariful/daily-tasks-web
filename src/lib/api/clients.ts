@@ -1,14 +1,26 @@
 import { apiFetch } from "./client";
-import type { ClientRequest, ClientResponse } from "./types";
+import type { ClientRequest, ClientResponse, PageResponse } from "./types";
 
 export interface ClientFilters {
   active?: boolean;
   q?: string;
+  page?: number;
+  size?: number;
+}
+
+/** The API caps a page at 100 - enough to fetch every client in one request. */
+export const MAX_CLIENT_PAGE_SIZE = 100;
+
+function list(filters: ClientFilters = {}) {
+  return apiFetch<PageResponse<ClientResponse>>("/clients", { query: { ...filters } });
 }
 
 export const clientsApi = {
-  list: (filters: ClientFilters = {}) =>
-    apiFetch<ClientResponse[]>("/clients", { query: { active: filters.active, q: filters.q } }),
+  list,
+
+  /** Every matching client in one go, for dropdowns and name lookups. */
+  listAll: (filters: Omit<ClientFilters, "page" | "size"> = {}) =>
+    list({ ...filters, size: MAX_CLIENT_PAGE_SIZE }).then((page) => page.content),
 
   get: (id: number) => apiFetch<ClientResponse>(`/clients/${id}`),
 

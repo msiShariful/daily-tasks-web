@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { useClients } from "@/hooks/use-clients";
+import { useAllClients } from "@/hooks/use-clients";
 import { useTaskStatuses } from "@/hooks/use-task-statuses";
 import { useTeamMembers } from "@/hooks/use-team-members";
 import type { TaskSearchParams } from "@/lib/api/types";
@@ -24,7 +24,7 @@ import { parseTaskSearchParams, SORT_OPTIONS, taskSearchHref } from "@/lib/task-
 export function TaskFilters({ params }: { params: TaskSearchParams }) {
   const router = useRouter();
   const membersQuery = useTeamMembers();
-  const clientsQuery = useClients();
+  const clientsQuery = useAllClients();
   const { data: statuses = FALLBACK_TASK_STATUSES } = useTaskStatuses();
   const members = membersQuery.data ?? [];
   const clients = clientsQuery.data ?? [];

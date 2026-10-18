@@ -12,7 +12,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { Spinner } from "@/components/ui/Spinner";
 import { Textarea } from "@/components/ui/Textarea";
-import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useAllClients, useCreateClient } from "@/hooks/use-clients";
 import { useTaskStatuses } from "@/hooks/use-task-statuses";
 import { useTeamMembers } from "@/hooks/use-team-members";
 import { useCreateTask, useUpdateTask } from "@/hooks/use-tasks";
@@ -70,7 +70,7 @@ interface TaskFormProps {
  */
 function TaskForm(props: TaskFormProps) {
   const membersQuery = useTeamMembers({ active: true });
-  const clientsQuery = useClients({ active: true });
+  const clientsQuery = useAllClients({ active: true });
 
   if (membersQuery.isPending || clientsQuery.isPending) {
     return (
@@ -181,7 +181,7 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
     const name = newClientName.trim();
     if (!name) return "";
 
-    const search = await clientsApi.list({ q: name });
+    const search = await clientsApi.listAll({ q: name });
     const found = search.find((c) => sameClientName(c.name, name));
     if (found) return String(found.id);
 
@@ -202,7 +202,7 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
       return String(created.id);
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) {
-        const retry = await clientsApi.list({ q: name });
+        const retry = await clientsApi.listAll({ q: name });
         const raced = retry.find((c) => sameClientName(c.name, name));
         if (raced) return String(raced.id);
       }

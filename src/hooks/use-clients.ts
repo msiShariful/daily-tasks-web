@@ -1,14 +1,25 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { clientsApi, type ClientFilters } from "@/lib/api/clients";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { clientsApi, MAX_CLIENT_PAGE_SIZE, type ClientFilters } from "@/lib/api/clients";
 import type { ClientRequest } from "@/lib/api/types";
 import { queryKeys } from "@/lib/query-keys";
 
+/** One page of clients (default 10). */
 export function useClients(filters: ClientFilters = {}) {
   return useQuery({
     queryKey: queryKeys.clients.list(filters),
     queryFn: () => clientsApi.list(filters),
+    // Keep the current rows on screen while the next page loads.
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Every client at once, for dropdowns. */
+export function useAllClients(filters: Omit<ClientFilters, "page" | "size"> = {}) {
+  return useQuery({
+    queryKey: queryKeys.clients.list({ ...filters, size: MAX_CLIENT_PAGE_SIZE }),
+    queryFn: () => clientsApi.listAll(filters),
   });
 }
 
