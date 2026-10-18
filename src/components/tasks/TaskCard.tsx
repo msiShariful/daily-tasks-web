@@ -41,7 +41,7 @@ export function TaskCard({ task, isFirst, isLast, onMove, onEdit }: TaskCardProp
 
   return (
     <li
-      className="group rounded-md border-l-4 bg-white px-3 py-2.5 shadow-xs ring-1 ring-slate-200"
+      className="group rounded-xl border-l-4 bg-white px-4 py-3 ring-1 ring-slate-200/70 transition-shadow hover:shadow-lift"
       style={{ borderLeftColor: status.color }}
     >
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">

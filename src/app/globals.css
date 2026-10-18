@@ -6,6 +6,19 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+/*
+ * One elevation scale for the whole app, tinted with the ink colour (slate-900)
+ * rather than pure black so shadows read as soft, not muddy.
+ *   card - a resting surface (cards, tables)
+ *   lift - something raised or hovered (active day, hovered task)
+ *   pop  - overlays (dialogs, the side panel)
+ */
+@theme {
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.03);
+  --shadow-lift: 0 1px 2px 0 rgb(15 23 42 / 0.05), 0 8px 24px -8px rgb(15 23 42 / 0.12);
+  --shadow-pop: 0 2px 4px 0 rgb(15 23 42 / 0.06), 0 24px 48px -12px rgb(15 23 42 / 0.25);
+}
+
 @layer base {
   html {
     color-scheme: light;

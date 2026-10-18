@@ -69,30 +69,30 @@ export function TeamMemberTable() {
   return (
     <>
       <Card className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <table className="min-w-full divide-y divide-slate-200/70 text-sm">
+          <thead className="bg-slate-50/80 text-left text-xs font-medium text-slate-500">
             <tr>
-              <th scope="col" className="px-4 py-3">Order</th>
-              <th scope="col" className="px-4 py-3">Name</th>
-              <th scope="col" className="px-4 py-3">Email</th>
-              <th scope="col" className="px-4 py-3">Designation</th>
-              <th scope="col" className="px-4 py-3">Status</th>
-              <th scope="col" className="px-4 py-3 text-right">
+              <th scope="col" className="px-5 py-3">Order</th>
+              <th scope="col" className="px-5 py-3">Name</th>
+              <th scope="col" className="px-5 py-3">Email</th>
+              <th scope="col" className="px-5 py-3">Designation</th>
+              <th scope="col" className="px-5 py-3">Status</th>
+              <th scope="col" className="px-5 py-3 text-right">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {members.map((member) => (
-              <tr key={member.id} className="hover:bg-slate-50">
-                <td className="px-4 py-3 tabular-nums text-slate-500">{member.displayOrder}</td>
-                <td className="px-4 py-3 font-medium text-slate-900">{member.fullName}</td>
-                <td className="px-4 py-3 text-slate-600">{member.email}</td>
-                <td className="px-4 py-3 text-slate-600">{member.designation ?? "—"}</td>
-                <td className="px-4 py-3">
+              <tr key={member.id} className="transition-colors hover:bg-slate-50/60">
+                <td className="px-5 py-3.5 tabular-nums text-slate-500">{member.displayOrder}</td>
+                <td className="px-5 py-3.5 font-medium text-slate-900">{member.fullName}</td>
+                <td className="px-5 py-3.5 text-slate-600">{member.email}</td>
+                <td className="px-5 py-3.5 text-slate-600">{member.designation ?? "—"}</td>
+                <td className="px-5 py-3.5">
                   {member.active ? <Badge tone="green">Active</Badge> : <Badge>Inactive</Badge>}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right">
+                <td className="whitespace-nowrap px-5 py-3.5 text-right">
                   <Link
                     href={`/team-members/${member.id}/edit`}
                     className={buttonClasses("ghost", "sm")}

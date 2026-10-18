@@ -56,11 +56,13 @@ export interface TeamMemberRequest {
 export interface ClientSummary {
   id: number;
   name: string;
+  ticketId: number;
 }
 
 export interface ClientResponse {
   id: number;
   name: string;
+  ticketId: number;
   notes: string | null;
   active: boolean;
   createdAt: IsoInstant;
@@ -69,6 +71,7 @@ export interface ClientResponse {
 
 export interface ClientRequest {
   name: string;
+  ticketId: number;
   notes: string | null;
   active: boolean;
 }

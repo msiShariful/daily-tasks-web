@@ -45,7 +45,7 @@ export function DayNavigator({ date }: { date: IsoDate }) {
           const value = event.target.value;
           if (isIsoDate(value)) router.push(`/daily/${value}`);
         }}
-        className="h-8 rounded-md border-0 bg-white px-2 text-xs text-slate-700 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600"
+        className="h-8 rounded-lg border-0 bg-white px-2 text-xs text-slate-700 shadow-card ring-1 ring-inset ring-slate-200 transition-[box-shadow] hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:shadow-[0_0_0_4px_rgb(99_102_241/0.12)]"
       />
     </nav>
   );

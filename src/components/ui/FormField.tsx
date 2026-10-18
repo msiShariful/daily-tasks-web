@@ -19,8 +19,8 @@ export function FormField({ id, label, required, error, hint, children, classNam
       <Label htmlFor={id} required={required}>
         {label}
       </Label>
-      <div className="mt-1">{children}</div>
-      {hint && !error && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      <div className="mt-1.5">{children}</div>
+      {hint && !error && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
       <FieldError id={`${id}-error`} message={error} />
     </div>
   );

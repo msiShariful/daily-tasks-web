@@ -38,14 +38,17 @@ export function MemberSection({ date, section, onAddTask, onEditTask }: MemberSe
             </h2>
             <div className="mt-1 flex items-center gap-2">
               <div
-                className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200"
+                className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200/80"
                 role="progressbar"
                 aria-label={`${member.fullName} progress`}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={percent}
               >
-                <div className="h-full bg-green-500 transition-all" style={{ width: `${percent}%` }} />
+                <div
+                  className="h-full rounded-full bg-linear-to-r from-emerald-400 to-emerald-500 transition-[width]"
+                  style={{ width: `${percent}%` }}
+                />
               </div>
               <span className="text-xs tabular-nums text-slate-500">
                 {done}/{total} done
@@ -57,11 +60,11 @@ export function MemberSection({ date, section, onAddTask, onEditTask }: MemberSe
           </Button>
         </CardHeader>
 
-        <div className="p-3">
+        <div className="p-4">
           {tasks.length === 0 ? (
             <p className="px-1 py-2 text-sm text-slate-400">No tasks for this day.</p>
           ) : (
-            <ol className="space-y-2">
+            <ol className="space-y-2.5">
               {tasks.map((task, index) => (
                 <TaskCard
                   key={task.id}

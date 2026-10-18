@@ -16,12 +16,12 @@ export function TopBar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
+    <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-5 px-4 sm:px-6">
+        <Link href="/" className="flex items-center gap-2.5 font-semibold text-slate-900">
           <span
             aria-hidden="true"
-            className="grid size-7 place-items-center rounded-md bg-indigo-600 text-xs font-bold text-white"
+            className="grid size-8 place-items-center rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-[0_1px_2px_0_rgb(79_70_229/0.35)]"
           >
             DT
           </span>
@@ -37,7 +37,7 @@ export function TopBar() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium",
+                  "whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                   active
                     ? "bg-indigo-50 text-indigo-700"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",

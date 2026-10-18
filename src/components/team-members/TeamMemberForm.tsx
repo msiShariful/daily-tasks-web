@@ -107,7 +107,7 @@ function TeamMemberFormInner({ member }: { member?: TeamMemberResponse }) {
 
   return (
     <Card>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5 p-6">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5 p-6 sm:p-8">
         <FormField id="fullName" label="Full name" required error={errors.fullName?.message}>
           <Input
             id="fullName"
@@ -161,22 +161,23 @@ function TeamMemberFormInner({ member }: { member?: TeamMemberResponse }) {
           />
         </FormField>
 
-        <div className="flex items-start gap-3">
+        <label
+          htmlFor="active"
+          className="flex cursor-pointer items-start gap-3 rounded-lg px-3.5 py-3 ring-1 ring-slate-200/70 transition-colors hover:bg-slate-50/80"
+        >
           <input
             id="active"
             type="checkbox"
             className="mt-0.5 size-4 rounded border-slate-300 accent-indigo-600"
             {...register("active")}
           />
-          <div>
-            <label htmlFor="active" className="text-sm font-medium text-slate-700">
-              Active
-            </label>
-            <p className="text-xs text-slate-500">
+          <span>
+            <span className="block text-sm font-medium text-slate-800">Active</span>
+            <span className="block text-xs text-slate-500">
               Inactive members are hidden from new daily logs but keep their history.
-            </p>
-          </div>
-        </div>
+            </span>
+          </span>
+        </label>
 
         {errors.root?.server && (
           <p role="alert" className="text-sm text-red-600">
@@ -184,7 +185,7 @@ function TeamMemberFormInner({ member }: { member?: TeamMemberResponse }) {
           </p>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-slate-200 pt-5">
+        <div className="flex justify-end gap-2 border-t border-slate-200/70 pt-5">
           <Link href="/team-members" className={buttonClasses("secondary")}>
             Cancel
           </Link>

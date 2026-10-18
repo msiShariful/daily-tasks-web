@@ -48,7 +48,7 @@ export function TaskSearchView() {
           </p>
           <Card className={cn("overflow-x-auto transition-opacity", isPlaceholderData && "opacity-60")}>
             <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50/80 text-left text-xs font-medium text-slate-500">
                 <tr>
                   <th scope="col" className="px-4 py-3">Date</th>
                   <th scope="col" className="px-4 py-3">Member</th>

@@ -1,12 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button, buttonClasses } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { FormField } from "@/components/ui/FormField";
@@ -26,19 +23,27 @@ import {
   type ClientFormValues,
 } from "@/lib/schemas/client";
 
-export function ClientForm({ clientId }: { clientId?: number }) {
+interface ClientFormProps {
+  /** Omit to create a client; pass an id to edit one. */
+  clientId?: number;
+  /** Called after a successful save or when the user cancels. */
+  onDone: () => void;
+}
+
+/** Rendered inside the client panel: loads the client for edit, then shows the form. */
+export function ClientForm({ clientId, onDone }: ClientFormProps) {
   const clientQuery = useClient(clientId);
 
   if (clientId === undefined) {
-    return <ClientFormInner />;
+    return <ClientFormInner onDone={onDone} />;
   }
   if (clientQuery.isPending) {
     return (
-      <Card className="space-y-4 p-6">
-        {Array.from({ length: 3 }, (_, i) => (
+      <div className="space-y-5">
+        {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} className="h-10" />
         ))}
-      </Card>
+      </div>
     );
   }
   if (clientQuery.isError) {
@@ -48,20 +53,19 @@ export function ClientForm({ clientId }: { clientId?: number }) {
           title="Client not found"
           description="It may have been deleted."
           action={
-            <Link href="/clients" className={buttonClasses("secondary")}>
-              Back to clients
-            </Link>
+            <Button variant="secondary" onClick={onDone}>
+              Close
+            </Button>
           }
         />
       );
     }
     return <ErrorState error={clientQuery.error} onRetry={() => clientQuery.refetch()} />;
   }
-  return <ClientFormInner client={clientQuery.data} />;
+  return <ClientFormInner client={clientQuery.data} onDone={onDone} />;
 }
 
-function ClientFormInner({ client }: { client?: ClientResponse }) {
-  const router = useRouter();
+function ClientFormInner({ client, onDone }: { client?: ClientResponse; onDone: () => void }) {
   const createClient = useCreateClient();
   const updateClient = useUpdateClient(client?.id ?? 0);
   const isEdit = client !== undefined;
@@ -81,16 +85,16 @@ function ClientFormInner({ client }: { client?: ClientResponse }) {
     try {
       if (isEdit) {
         await updateClient.mutateAsync(request);
-        toast.success("Client updated");
+        toast.success("Client saved");
       } else {
         await createClient.mutateAsync(request);
         toast.success("Client created");
       }
-      router.push("/clients");
+      onDone();
     } catch (error) {
       if (applyServerErrors(error, setError, CLIENT_FORM_FIELDS)) return;
       if (error instanceof ApiError && error.isConflict) {
-        setError("name", { type: "server", message: error.message });
+        setError("ticketId", { type: "server", message: error.message });
         return;
       }
       toast.error(getErrorMessage(error));
@@ -98,14 +102,35 @@ function ClientFormInner({ client }: { client?: ClientResponse }) {
   }
 
   return (
-    <Card>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5 p-6">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex h-full flex-col">
+      <div className="flex-1 space-y-5">
         <FormField id="name" label="Name" required error={errors.name?.message}>
           <Input
             id="name"
+            autoFocus
             aria-invalid={errors.name ? true : undefined}
             aria-describedby="name-error"
             {...register("name")}
+          />
+        </FormField>
+
+        <FormField
+          id="ticketId"
+          label="Ticket ID"
+          required
+          hint="The client's ticket number, e.g. 52640. Each client has its own."
+          error={errors.ticketId?.message}
+        >
+          <Input
+            id="ticketId"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            className="max-w-40 tabular-nums"
+            aria-invalid={errors.ticketId ? true : undefined}
+            aria-describedby="ticketId-error"
+            {...register("ticketId", { valueAsNumber: true })}
           />
         </FormField>
 
@@ -119,36 +144,39 @@ function ClientFormInner({ client }: { client?: ClientResponse }) {
           />
         </FormField>
 
-        <div className="flex items-start gap-3">
+        <label
+          htmlFor="active"
+          className="flex cursor-pointer items-start gap-3 rounded-lg px-3.5 py-3 ring-1 ring-slate-200/70 transition-colors hover:bg-slate-50/80"
+        >
           <input
             id="active"
             type="checkbox"
             className="mt-0.5 size-4 rounded border-slate-300 accent-indigo-600"
             {...register("active")}
           />
-          <div>
-            <label htmlFor="active" className="text-sm font-medium text-slate-700">
-              Active
-            </label>
-            <p className="text-xs text-slate-500">Inactive clients are hidden from the task form.</p>
-          </div>
-        </div>
+          <span>
+            <span className="block text-sm font-medium text-slate-800">Active</span>
+            <span className="block text-xs text-slate-500">
+              Inactive clients are hidden from the task form.
+            </span>
+          </span>
+        </label>
 
         {errors.root?.server && (
           <p role="alert" className="text-sm text-red-600">
             {errors.root.server.message}
           </p>
         )}
+      </div>
 
-        <div className="flex justify-end gap-2 border-t border-slate-200 pt-5">
-          <Link href="/clients" className={buttonClasses("secondary")}>
-            Cancel
-          </Link>
-          <Button type="submit" loading={isSubmitting}>
-            {isEdit ? "Save changes" : "Create client"}
-          </Button>
-        </div>
-      </form>
-    </Card>
+      <div className="mt-8 flex justify-end gap-2 border-t border-slate-200/70 pt-5">
+        <Button variant="secondary" onClick={onDone} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button type="submit" loading={isSubmitting}>
+          {isEdit ? "Save changes" : "Create client"}
+        </Button>
+      </div>
+    </form>
   );
 }

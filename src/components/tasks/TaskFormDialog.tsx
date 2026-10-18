@@ -112,6 +112,8 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
   // A client name typed into quick entry that no existing client matches yet.
   // It is only created on submit, so abandoning the form leaves no stray client.
   const [newClientName, setNewClientName] = useState("");
+  // The pasted numeric prefix, reused as the new client's ticketId (null if non-numeric).
+  const [newClientTicketId, setNewClientTicketId] = useState<number | null>(null);
   const createClient = useCreateClient();
   const [conflict, setConflict] = useState(false);
   const [reloading, setReloading] = useState(false);
@@ -136,7 +138,10 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
       : members;
   const clientOptions =
     task?.client && !clients.some((c) => c.id === task.client?.id)
-      ? [...clients, { id: task.client.id, name: `${task.client.name} (inactive)` }]
+      ? [
+          ...clients,
+          { id: task.client.id, name: `${task.client.name} (inactive)`, ticketId: task.client.ticketId },
+        ]
       : clients;
 
   // The staged <option> only exists after newClientName renders, so select it
@@ -152,14 +157,17 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
 
     if (!clientName) {
       setNewClientName("");
+      setNewClientTicketId(null);
       return;
     }
     const existing = clients.find((c) => sameClientName(c.name, clientName));
     if (existing) {
       setNewClientName("");
+      setNewClientTicketId(null);
       setValue("clientId", String(existing.id), { shouldDirty: true });
     } else {
       setNewClientName(clientName); // the effect above selects it once rendered
+      setNewClientTicketId(/^\d+$/.test(taskCode) ? Number(taskCode) : null);
     }
   }
 
@@ -177,8 +185,20 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
     const found = search.find((c) => sameClientName(c.name, name));
     if (found) return String(found.id);
 
+    if (newClientTicketId === null) {
+      throw new Error(
+        `"${name}" is a new client, but its ticket id must be a number. ` +
+          "Paste it as \"<number> - name\", or add this client from the Clients page first.",
+      );
+    }
+
     try {
-      const created = await createClient.mutateAsync({ name, notes: null, active: true });
+      const created = await createClient.mutateAsync({
+        name,
+        ticketId: newClientTicketId,
+        notes: null,
+        active: true,
+      });
       return String(created.id);
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) {
@@ -232,7 +252,7 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {conflict && (
-        <div role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
+        <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-3.5 text-sm">
           <p className="font-medium text-amber-900">Someone else changed this task.</p>
           <p className="mt-0.5 text-amber-800">
             Your copy is out of date (maybe its status was changed). Load the latest version, then
@@ -357,7 +377,7 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
         </p>
       )}
 
-      <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">
+      <div className="flex justify-end gap-2 border-t border-slate-200/70 pt-5">
         <Button variant="secondary" onClick={onDone}>
           Cancel
         </Button>

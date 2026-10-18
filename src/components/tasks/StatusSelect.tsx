@@ -25,7 +25,7 @@ export function StatusSelect({ task }: { task: TaskResponse }) {
         onChange={(event) =>
           updateStatus.mutate({ task, status: event.target.value as TaskStatusCode })
         }
-        className="h-8 rounded-md border-0 bg-white py-0 pl-6 pr-7 text-xs font-medium text-slate-800 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600"
+        className="h-8 rounded-lg border-0 bg-white py-0 pl-6 pr-7 text-xs font-medium text-slate-800 ring-1 ring-inset ring-slate-200 transition-[box-shadow] hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:shadow-[0_0_0_4px_rgb(99_102_241/0.12)]"
       >
         {statuses.map((status) => (
           <option key={status.code} value={status.code}>

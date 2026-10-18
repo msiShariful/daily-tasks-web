@@ -7,10 +7,10 @@ interface LabelProps extends ComponentProps<"label"> {
 
 export function Label({ className, children, required, ...props }: LabelProps) {
   return (
-    <label className={cn("block text-sm font-medium text-slate-700", className)} {...props}>
+    <label className={cn("block text-sm font-medium text-slate-800", className)} {...props}>
       {children}
       {required && (
-        <span className="ml-0.5 text-red-600" aria-hidden="true">
+        <span className="ml-0.5 text-red-500" aria-hidden="true">
           *
         </span>
       )}

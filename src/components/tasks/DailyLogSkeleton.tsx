@@ -7,7 +7,7 @@ export function DailyLogSkeleton() {
     <div className="space-y-4" aria-busy="true" aria-label="Loading daily log">
       {Array.from({ length: 3 }, (_, section) => (
         <Card key={section}>
-          <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-3">
+          <div className="flex items-center gap-3 border-b border-slate-200/70 px-5 py-4">
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-2 w-24" />

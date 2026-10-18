@@ -52,7 +52,7 @@ export function TaskFilters({ params }: { params: TaskSearchParams }) {
       role="search"
       aria-label="Filter tasks"
       onSubmit={handleSubmit}
-      className="grid gap-3 rounded-lg bg-white p-4 shadow-xs ring-1 ring-slate-200 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid gap-3 rounded-xl bg-white p-5 shadow-card ring-1 ring-slate-200/70 sm:grid-cols-2 lg:grid-cols-4"
     >
       <div className="sm:col-span-2">
         <Label htmlFor="filter-q">Search</Label>
