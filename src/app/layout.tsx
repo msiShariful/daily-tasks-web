@@ -25,7 +25,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
-      <body className="min-h-full font-sans">
+      {/*
+        Browser extensions (ColorZilla, Grammarly, password managers) add their own
+        attributes to <body> before React hydrates, and React reports that as a
+        hydration mismatch. This silences it for this element's own attributes only;
+        mismatches inside the app are still reported.
+      */}
+      <body className="min-h-full font-sans" suppressHydrationWarning>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
