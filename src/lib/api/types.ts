@@ -155,7 +155,7 @@ export interface TaskSearchParams {
   memberId?: number;
   clientId?: number;
   status?: TaskStatusCode;
-  q?: string;
+  search?: string;
   page?: number;
   size?: number;
   sort?: string; // e.g. "workDate,desc"

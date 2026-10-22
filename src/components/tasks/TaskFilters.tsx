@@ -16,7 +16,7 @@ import { FALLBACK_TASK_STATUSES } from "@/lib/task-status";
 import { parseTaskSearchParams, SORT_OPTIONS, taskSearchHref } from "@/lib/task-search-params";
 
 /**
- * Filter form whose state lives in the URL (?q=...&status=...), like a Blade GET form.
+ * Filter form whose state lives in the URL (?search=...&status=...), like a Blade GET form.
  * The inputs are uncontrolled (defaultValue); on submit we read them with FormData
  * and navigate. The parent gives this form a `key` built from the URL, so Back/Forward
  * re-creates it with the right values.
@@ -55,13 +55,13 @@ export function TaskFilters({ params }: { params: TaskSearchParams }) {
       className="grid gap-3 rounded-xl bg-white p-5 shadow-card ring-1 ring-slate-200/70 sm:grid-cols-2 lg:grid-cols-4"
     >
       <div className="sm:col-span-2">
-        <Label htmlFor="filter-q">Search</Label>
+        <Label htmlFor="filter-search">Search</Label>
         <Input
-          id="filter-q"
-          name="q"
+          id="filter-search"
+          name="search"
           type="search"
           placeholder="Title, task ID or details…"
-          defaultValue={params.q ?? ""}
+          defaultValue={params.search ?? ""}
           className="mt-1"
         />
       </div>

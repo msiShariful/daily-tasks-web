@@ -181,8 +181,8 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
     const name = newClientName.trim();
     if (!name) return "";
 
-    const search = await clientsApi.listAll({ q: name });
-    const found = search.find((c) => sameClientName(c.name, name));
+    const matches = await clientsApi.listAll({ search: name });
+    const found = matches.find((c) => sameClientName(c.name, name));
     if (found) return String(found.id);
 
     if (newClientTicketId === null) {
@@ -202,7 +202,7 @@ function TaskFormInner({ workDate, task, defaultMemberId, onDone, members, clien
       return String(created.id);
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) {
-        const retry = await clientsApi.listAll({ q: name });
+        const retry = await clientsApi.listAll({ search: name });
         const raced = retry.find((c) => sameClientName(c.name, name));
         if (raced) return String(raced.id);
       }

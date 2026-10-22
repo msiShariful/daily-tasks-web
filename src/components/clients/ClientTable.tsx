@@ -29,7 +29,7 @@ export function ClientTable() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState<number>(PAGE_SIZES[0]);
   const { data, isPending, isPlaceholderData, isError, error, refetch } = useClients({
-    q: deferredSearch || undefined,
+    search: deferredSearch || undefined,
     page,
     size,
   });

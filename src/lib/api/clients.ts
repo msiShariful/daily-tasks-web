@@ -3,7 +3,7 @@ import type { ClientRequest, ClientResponse, PageResponse } from "./types";
 
 export interface ClientFilters {
   active?: boolean;
-  q?: string;
+  search?: string;
   page?: number;
   size?: number;
 }

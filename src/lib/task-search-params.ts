@@ -25,7 +25,7 @@ function isStatus(value: string | null): value is TaskStatusCode {
 }
 
 /**
- * URL (?q=login&status=DONE&page=2) -> typed API params.
+ * URL (?search=login&status=DONE&page=2) -> typed API params.
  * Invalid values are ignored instead of crashing the page.
  * The URL uses 1-based "page" for humans; the API is 0-based.
  */
@@ -37,7 +37,7 @@ export function parseTaskSearchParams(searchParams: SearchParamsLike): TaskSearc
   const page = positiveInt(searchParams.get("page")) ?? 1;
 
   return {
-    q: searchParams.get("q")?.trim() || undefined,
+    search: searchParams.get("search")?.trim() || undefined,
     from: isIsoDate(from) ? from : undefined,
     to: isIsoDate(to) ? to : undefined,
     memberId: positiveInt(searchParams.get("memberId")),
@@ -49,10 +49,10 @@ export function parseTaskSearchParams(searchParams: SearchParamsLike): TaskSearc
   };
 }
 
-/** Typed params -> "/tasks?q=...&page=2" (drops defaults and empty values). */
+/** Typed params -> "/tasks?search=...&page=2" (drops defaults and empty values). */
 export function taskSearchHref(params: TaskSearchParams): string {
   const query = new URLSearchParams();
-  if (params.q) query.set("q", params.q);
+  if (params.search) query.set("search", params.search);
   if (params.from) query.set("from", params.from);
   if (params.to) query.set("to", params.to);
   if (params.memberId) query.set("memberId", String(params.memberId));
