@@ -15,6 +15,15 @@ export function useClients(filters: ClientFilters = {}) {
   });
 }
 
+/** One page of soft-deleted clients. */
+export function useArchivedClients(filters: Omit<ClientFilters, "active"> = {}) {
+  return useQuery({
+    queryKey: queryKeys.clients.archived(filters),
+    queryFn: () => clientsApi.listArchived(filters),
+    placeholderData: keepPreviousData,
+  });
+}
+
 /** Every client at once, for dropdowns. */
 export function useAllClients(filters: Omit<ClientFilters, "page" | "size"> = {}) {
   return useQuery({
@@ -62,6 +71,22 @@ export function useDeleteClient() {
   const invalidate = useInvalidateClients();
   return useMutation({
     mutationFn: (id: number) => clientsApi.remove(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useRestoreClient() {
+  const invalidate = useInvalidateClients();
+  return useMutation({
+    mutationFn: (id: number) => clientsApi.restore(id),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteClientPermanently() {
+  const invalidate = useInvalidateClients();
+  return useMutation({
+    mutationFn: (id: number) => clientsApi.removePermanently(id),
     onSuccess: invalidate,
   });
 }

@@ -15,8 +15,21 @@ function list(filters: ClientFilters = {}) {
   return apiFetch<PageResponse<ClientResponse>>("/clients", { query: { ...filters } });
 }
 
+function listArchived(filters: Omit<ClientFilters, "active"> = {}) {
+  return apiFetch<PageResponse<ClientResponse>>("/clients/archived", { query: { ...filters } });
+}
+
 export const clientsApi = {
   list,
+
+  /** Soft-deleted clients. */
+  listArchived,
+
+  restore: (id: number) => apiFetch<ClientResponse>(`/clients/${id}/restore`, { method: "POST" }),
+
+  /** Permanent. Only works on archived clients that no task uses. */
+  removePermanently: (id: number) =>
+    apiFetch<void>(`/clients/${id}/permanent`, { method: "DELETE" }),
 
   /** Every matching client in one go, for dropdowns and name lookups. */
   listAll: (filters: Omit<ClientFilters, "page" | "size"> = {}) =>

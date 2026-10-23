@@ -18,6 +18,7 @@ export const queryKeys = {
     all: ["clients"] as const,
     list: (filters: ClientFilters) => ["clients", "list", filters] as const,
     detail: (id: number) => ["clients", "detail", id] as const,
+    archived: (filters: Omit<ClientFilters, "active">) => ["clients", "archived", filters] as const,
   },
   taskStatuses: ["task-statuses"] as const,
   tasks: {

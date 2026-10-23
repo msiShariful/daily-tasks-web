@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClientTable } from "@/components/clients/ClientTable";
+import { ClientsView } from "@/components/clients/ClientsView";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export const metadata: Metadata = { title: "Clients" };
@@ -11,7 +11,7 @@ export default function ClientsPage() {
         title="Clients"
         description="Who the work is for. Tasks without a client are internal."
       />
-      <ClientTable />
+      <ClientsView />
     </>
   );
 }
